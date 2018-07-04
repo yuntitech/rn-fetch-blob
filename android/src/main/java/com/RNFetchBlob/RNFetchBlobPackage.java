@@ -29,4 +29,7 @@ public class RNFetchBlobPackage implements ReactPackage {
         return Collections.emptyList();
     }
 
+    public void encrypt(byte[] bytes, int offset, int length) {
+    }
+
 }
