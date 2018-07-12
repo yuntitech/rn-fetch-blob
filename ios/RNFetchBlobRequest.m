@@ -36,6 +36,7 @@ typedef NS_ENUM(NSUInteger, ResponseFormat) {
     ResponseFormat responseFormat;
     BOOL followRedirect;
     BOOL backgroundTask;
+    NSInteger httpMaximumConnectionsPerHost;
 }
 
 @end
@@ -82,6 +83,7 @@ typedef NS_ENUM(NSUInteger, ResponseFormat) {
     self.options = options;
     
     backgroundTask = [[options valueForKey:@"IOSBackgroundTask"] boolValue];
+    httpMaximumConnectionsPerHost = [[options valueForKey:@"IOSHTTPMaximumConnectionsPerHost"] integerValue];
     // when followRedirect not set in options, defaults to TRUE
     followRedirect = [options valueForKey:@"followRedirect"] == nil ? YES : [[options valueForKey:@"followRedirect"] boolValue];
     isIncrement = [[options valueForKey:@"increment"] boolValue];
@@ -123,8 +125,13 @@ typedef NS_ENUM(NSUInteger, ResponseFormat) {
     if (timeout > 0) {
         defaultConfigObject.timeoutIntervalForRequest = timeout/1000;
     }
-    
-    defaultConfigObject.HTTPMaximumConnectionsPerHost = 10;
+
+    if (httpMaximumConnectionsPerHost > 0) {
+        defaultConfigObject.HTTPMaximumConnectionsPerHost = httpMaximumConnectionsPerHost;
+    } else {
+        defaultConfigObject.HTTPMaximumConnectionsPerHost = 10;
+    }
+
     session = [NSURLSession sessionWithConfiguration:defaultConfigObject delegate:self delegateQueue:operationQueue];
     
     if (path || [self.options valueForKey:CONFIG_USE_TEMP]) {
