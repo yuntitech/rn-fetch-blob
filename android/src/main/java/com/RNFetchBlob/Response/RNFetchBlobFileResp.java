@@ -39,7 +39,7 @@ public class RNFetchBlobFileResp extends ResponseBody {
     RNFetchBlobPackage mBlobPackage;
     boolean encrypt;
 
-    public RNFetchBlobFileResp(ReactApplicationContext ctx, String taskId, ResponseBody body, String path, boolean overwrite) throws IOException {
+    public RNFetchBlobFileResp(ReactApplicationContext ctx, String taskId, ResponseBody body, String path,boolean encrypt, boolean overwrite) throws IOException {
         super();
         this.rctContext = ctx;
         this.mTaskId = taskId;

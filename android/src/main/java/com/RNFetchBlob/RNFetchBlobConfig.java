@@ -18,6 +18,7 @@ class RNFetchBlobConfig {
     public Boolean increment = false;
     public Boolean followRedirect = true;
     public ReadableArray binaryContentTypes = null;
+    public boolean encrypt = false;
 
     RNFetchBlobConfig(ReadableMap options) {
         if(options == null)
@@ -45,6 +46,9 @@ class RNFetchBlobConfig {
         this.auto = options.hasKey("auto") ? options.getBoolean("auto") : false;
         if(options.hasKey("timeout")) {
             this.timeout = options.getInt("timeout");
+        }
+        if (options.hasKey("encrypt")) {
+            this.encrypt = options.getBoolean("encrypt");
         }
     }
 
