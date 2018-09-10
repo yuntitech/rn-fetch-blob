@@ -8,11 +8,13 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.util.Base64;
 
 import com.RNFetchBlob.Utils.PathResolver;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.CallbackImpl;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
@@ -21,6 +23,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
@@ -252,7 +255,7 @@ class RNFetchBlobFS {
             if (externalDirectory != null) {
                 res.put("SDCardApplicationDir", externalDirectory.getParentFile().getAbsolutePath());
             } else {
-              res.put("SDCardApplicationDir", "");
+                res.put("SDCardApplicationDir", "");
             }
         }
         res.put("MainBundleDir", ctx.getApplicationInfo().dataDir);
@@ -580,9 +583,9 @@ class RNFetchBlobFS {
                 if (out != null) {
                     out.close();
                 }
-                callback.invoke();
+                invokeSafe(callback);
             } catch (Exception e) {
-                callback.invoke(e.getLocalizedMessage());
+                invokeSafe(callback,e.getLocalizedMessage());
             }
         }
     }
@@ -1103,6 +1106,23 @@ class RNFetchBlobFS {
         }
         else
             return PathResolver.getRealPathFromURI(RNFetchBlob.RCTContext, uri);
+    }
+
+    static void invokeSafe(final Callback callback,Object... args)
+    {
+        try {
+            if (callback instanceof CallbackImpl) {
+                Field field = CallbackImpl.class.getDeclaredField("mInvoked");
+                field.setAccessible(true);
+                boolean mInvoked = (boolean) field.get(callback);
+                if (mInvoked) {
+                    return;
+                }
+            }
+            callback.invoke(args);
+        } catch (Exception e) {
+            //ignore
+        }
     }
 
 }
