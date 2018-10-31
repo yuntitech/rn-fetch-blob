@@ -493,7 +493,8 @@ class RNFetchBlobFS {
      */
     static void unlink(String path, Callback callback) {
         try {
-            RNFetchBlobFS.deleteRecursive(new File(path));
+            String normalizedPath = normalizePath(path);
+            RNFetchBlobFS.deleteRecursive(new File(normalizedPath));
             callback.invoke(null, true);
         } catch(Exception err) {
             callback.invoke(err.getLocalizedMessage(), false);
@@ -551,6 +552,7 @@ class RNFetchBlobFS {
         path = normalizePath(path);
         InputStream in = null;
         OutputStream out = null;
+        String message = "";
 
         try {
             if(!isPathExists(path)) {
@@ -574,7 +576,7 @@ class RNFetchBlobFS {
                 out.write(buf, 0, len);
             }
         } catch (Exception err) {
-            callback.invoke(err.getLocalizedMessage());
+            message += err.getLocalizedMessage();
         } finally {
             try {
                 if (in != null) {
@@ -587,6 +589,13 @@ class RNFetchBlobFS {
             } catch (Exception e) {
                 invokeSafe(callback,e.getLocalizedMessage());
             }
+        }
+        // Only call the callback once to prevent the app from crashing
+        // with an 'Illegal callback invocation from native module' exception.
+        if (message != "") {
+            callback.invoke(message);
+        } else {
+            callback.invoke();
         }
     }
 
@@ -602,16 +611,29 @@ class RNFetchBlobFS {
             callback.invoke("Source file at path `" + path + "` does not exist");
             return;
         }
+
         try {
-            boolean result = src.renameTo(new File(dest));
-            if (!result) {
-                callback.invoke("mv failed for unknown reasons");
-                return;
+            InputStream in = new FileInputStream(path);
+            OutputStream out = new FileOutputStream(dest);
+
+            //read source path to byte buffer. Write from input to output stream
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = in.read(buffer)) != -1) { //read is successful
+                out.write(buffer, 0, read);
             }
+            in.close();
+            out.flush();
+
+            src.delete(); //remove original file
+        } catch (FileNotFoundException exception) {
+            callback.invoke("Source file not found.");
+            return;
         } catch (Exception e) {
-            callback.invoke(e.getLocalizedMessage());
+            callback.invoke(e.toString());
             return;
         }
+
         callback.invoke();
     }
 

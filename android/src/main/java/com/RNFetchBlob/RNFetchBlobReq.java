@@ -161,7 +161,11 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
             if (options.addAndroidDownloads.getBoolean("useDownloadManager")) {
                 Uri uri = Uri.parse(url);
                 DownloadManager.Request req = new DownloadManager.Request(uri);
-                req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                if(options.addAndroidDownloads.getBoolean("notification")) {
+                    req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                } else {
+                    req.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                }
                 if(options.addAndroidDownloads.hasKey("title")) {
                     req.setTitle(options.addAndroidDownloads.getString("title"));
                 }
@@ -262,7 +266,9 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                     requestType = RequestType.Form;
                 }
                 else if(cType.isEmpty()) {
-                    builder.header("Content-Type", "application/octet-stream");
+                    if(!cType.equalsIgnoreCase("")) {
+                      builder.header("Content-Type", "application/octet-stream");
+                    }
                     requestType = RequestType.SingleFile;
                 }
                 if(rawRequestBody != null) {

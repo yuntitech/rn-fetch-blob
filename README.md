@@ -2,6 +2,8 @@
 In order to publish new releases from this fork, we have renamed this project to
 `rn-fetch-blob` and published to `https://www.npmjs.com/package/rn-fetch-blob`.
 
+**Note**: If upgrading from the original fork change all references in your project from `react-native-fetch-blob` to `rn-fetch-blob`.  This includes `*.xcodeproj/project.pbxproj` and `android/**/*.gradle` depending on the platform used, failing to do so may cause build errors.
+
 # rn-fetch-blob
 [![release](https://img.shields.io/github/release/joltup/rn-fetch-blob.svg?style=flat-square)](https://github.com/joltup/rn-fetch-blob/releases) [![npm](https://img.shields.io/npm/v/rn-fetch-blob.svg?style=flat-square)](https://www.npmjs.com/package/rn-fetch-blob) ![](https://img.shields.io/badge/PR-Welcome-brightgreen.svg?style=flat-square) [![](https://img.shields.io/badge/Wiki-Public-brightgreen.svg?style=flat-square)](https://github.com/joltup/rn-fetch-blob/wiki) [![npm](https://img.shields.io/npm/l/rn-fetch-blob.svg?maxAge=2592000&style=flat-square)]()
 
@@ -27,6 +29,7 @@ A project committed to making file access and data transfer easier and more effi
  * [Multipart/form upload](#user-content-multipartform-data-example--post-form-data-with-file-and-data)
  * [Upload/Download progress](#user-content-uploaddownload-progress)
  * [Cancel HTTP request](#user-content-cancel-request)
+ * [iOS Background Uploading](#user-content-ios-background-uploading)
  * [Android Media Scanner, and Download Manager Support](#user-content-android-media-scanner-and-download-manager-support)
  * [Self-Signed SSL Server](#user-content-self-signed-ssl-server)
  * [Transfer Encoding](#user-content-transfer-encoding)
@@ -69,7 +72,7 @@ After `0.10.3` you can install this package directly from Github
 
 ```sh
 # replace <branch_name> with any one of the branches
-npm install --save github:joltup/rn-fetch-blob-package#<branch_name>
+npm install --save github:joltup/rn-fetch-blob#<branch_name>
 ```
 
 **Manually Link Native Modules**
@@ -120,7 +123,7 @@ If you're going to access external storage (say, SD card storage) for `Android 5
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
 +   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />                                               
 +   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />                                              
-
++   <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     ...
 
 ```
@@ -180,7 +183,7 @@ To sum up:
 
 ### Download example: Fetch files that need authorization token
 
-Most simple way is download to memory and stored as BASE64 encoded string, this is handy when the response data is small.
+Most simple way is download to memory and stored as BASE64 encoded string, this is handy when the response data is small. Note that when it comes to authorization, not only can you use an authorization token, but this package will automatically pass the cookies created by normal js requests such as axios and fetch. Therefore, if you are using traditional cookie-based ways to authorize your user, you don't need to do anything before this package works.
 
 ```js
 
@@ -473,6 +476,34 @@ If you have existing code that uses `whatwg-fetch`(the official **fetch**), it's
 
 [See document and examples](https://github.com/joltup/rn-fetch-blob/wiki/Fetch-API#fetch-replacement)
 
+### iOS Background Uploading
+ Normally, iOS interrupts network connections when an app is moved to the background, and will throw an error 'Lost connection to background transfer service' when the app resumes. To continue the upload of large files even when the app is in the background, you will need to enable IOSUploadTask options.
+
+First add the following property to your AppDelegate.h:
+```
+@property (nonatomic, copy) void(^backgroundTransferCompletionHandler)();
+```
+Then add the following to your AppDelegate.m:
+```
+- (void)application:(UIApplication *)application
+handleEventsForBackgroundURLSession:(NSString *)identifier
+  completionHandler:(void (^)(void))completionHandler {
+  self.backgroundTransferCompletionHandler = completionHandler;
+}
+```
+The following example shows how to upload a file in the background:
+ ```js
+ RNFetchBlob
+    .config({
+        IOSBackgroundTask: true, // required for both upload
+        IOSUploadTask: true, // Use instead of IOSDownloadTask if uploading
+        uploadFilePath : 'file://' + filePath
+    })
+    .fetch('PUT', url, {
+            'Content-Type': mediaType
+        }, RNFetchBlob.wrap(filePath));
+```
+
 ### Android Media Scanner, and Download Manager Support
 
 If you want to make a file in `External Storage` becomes visible in Picture, Downloads, or other built-in apps, you will have to use `Media Scanner` or `Download Manager`.
@@ -528,7 +559,7 @@ RNFetchBlob
     })
 ```
 
-Your app might not have right to remove/change the file created by Download Manager, therefore you might need to [set custom location to the download task](https://github.com/joltup/rn-fetch-blob/issues/236).
+Your app might not have right to remove/change the file created by Download Manager, therefore you might need to [set custom location to the download task](https://github.com/wkh237/react-native-fetch-blob/issues/236).
 
 **Download Notification and Visibility in Download App (Android Only)**
 
@@ -790,7 +821,7 @@ By default, rn-fetch-blob does NOT allow connection to unknown certification pro
 RNFetchBlob.config({
   trusty : true
 })
-.then('GET', 'https://mysite.com')
+.fetch('GET', 'https://mysite.com')
 .then((resp) => {
   // ...
 })
