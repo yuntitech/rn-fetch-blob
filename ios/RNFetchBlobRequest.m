@@ -158,7 +158,7 @@ typedef NS_ENUM(NSUInteger, ResponseFormat) {
         defaultConfigObject.HTTPMaximumConnectionsPerHost = 10;
     }
 
-    session = [NSURLSession sessionWithConfiguration:defaultConfigObject delegate:self delegateQueue:operationQueue];
+    _session = [NSURLSession sessionWithConfiguration:defaultConfigObject delegate:self delegateQueue:operationQueue];
     
     if (path || [self.options valueForKey:CONFIG_USE_TEMP]) {
         respFile = YES;
