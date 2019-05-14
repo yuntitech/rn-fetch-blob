@@ -63,6 +63,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okhttp3.TlsVersion;
+import okio.BufferedSource;
 
 
 public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
@@ -530,7 +531,15 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                     // In order to write response data to `destPath` we have to invoke this method.
                     // It uses customized response body which is able to report download progress
                     // and write response data to destination path.
-                    resp.body().bytes();
+//                    resp.body().bytes();
+                    BufferedSource source = resp.body().source();
+                    int KB_8 = 8 * 1024;
+                    while (true) {
+                        byte[] bytes = source.readByteArray(KB_8);
+                        if (bytes.length < KB_8) {
+                            break;
+                        }
+                    }
                 } catch (Exception ignored) {
 //                    ignored.printStackTrace();
                 }
