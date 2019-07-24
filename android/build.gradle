@@ -38,4 +38,5 @@ dependencies {
     //{RNFetchBlob_PRE_0.28_DEPDENDENCY}
     compile 'androidx.core:core:1.0.2'
     compile 'androidx.annotation:annotation:1.1.0'
+    implementation 'commons-io:commons-io:2.4'
 }

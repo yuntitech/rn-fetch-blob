@@ -12,6 +12,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -101,6 +103,14 @@ public class RNFetchBlobFileResp extends ResponseBody {
                         mBlobPackage.encrypt(bytes, 0, (int) byteCount);
                     }
                     ofStream.write(bytes, 0, (int) read);
+                }
+                //读不到数据了, 下载完成
+                else {
+                    //下载长度小于内容长度, 数据不对删除文件
+                    File file = new File(mPath);
+                    if (file.exists() && bytesDownloaded < contentLength()) {
+                        FileUtils.forceDelete(file);
+                    }
                 }
                 RNFetchBlobProgressConfig reportConfig = RNFetchBlobReq.getReportProgress(mTaskId);
                 if (reportConfig != null && contentLength() != 0 &&reportConfig.shouldReport(bytesDownloaded / contentLength())) {
