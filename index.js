@@ -236,7 +236,7 @@ function fetch(...args:any):Promise {
     // on progress event listener
     subscription = emitter.addListener('RNFetchBlobProgress', (e) => {
       if(e.taskId === taskId && promise.onProgress) {
-        promise.onProgress(e.written, e.total, e.chunk)
+        promise.onProgress(e.written, e.total, e.chunk, e.existException)
       }
     })
 

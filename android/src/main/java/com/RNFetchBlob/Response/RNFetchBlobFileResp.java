@@ -129,13 +129,26 @@ public class RNFetchBlobFileResp extends ResponseBody {
 
         @Override
         public Timeout timeout() {
+            emitProgressException();
             return null;
         }
 
         @Override
         public void close() throws IOException {
             ofStream.close();
+            if (bytesDownloaded < contentLength()) {
+                emitProgressException();
+            }
+        }
 
+        private void emitProgressException() {
+            WritableMap args = Arguments.createMap();
+            args.putBoolean("existException", true);
+            args.putString("taskId", mTaskId);
+            args.putString("written", String.valueOf(bytesDownloaded));
+            args.putString("total", String.valueOf(contentLength()));
+            rctContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(RNFetchBlobConst.EVENT_PROGRESS, args);
         }
     }
 
