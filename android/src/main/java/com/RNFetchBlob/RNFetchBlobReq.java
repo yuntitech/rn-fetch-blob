@@ -674,56 +674,51 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                 dm.query(query);
                 Cursor c = dm.query(query);
 
-                try {
-                    String filePath = null;
-                    // the file exists in media content database
-                    if (c != null && c.moveToFirst()) {
-                        // #297 handle failed request
-                        int statusCode = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
-                        if (statusCode == DownloadManager.STATUS_FAILED) {
-                            this.callback.invoke("Download manager failed to download from  " + this.url + ". Status Code = " + statusCode, null, null);
-                            return;
-                        }
-                        String contentUri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
-                        if (contentUri != null &&
-                                options.addAndroidDownloads.hasKey("mime") &&
-                                options.addAndroidDownloads.getString("mime").contains("image")) {
-                            Uri uri = Uri.parse(contentUri);
-                            Cursor cursor = appCtx.getContentResolver().query(uri, new String[]{android.provider.MediaStore.Images.ImageColumns.DATA}, null, null, null);
-                            // use default destination of DownloadManager
-                            if (cursor != null) {
-                                cursor.moveToFirst();
-                                filePath = cursor.getString(0);
-                                cursor.close();
-                            }
-                        }
+                String filePath = null;
+                // the file exists in media content database
+                if (c != null && c.moveToFirst()) {
+                    // #297 handle failed request
+                    int statusCode = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                    if (statusCode == DownloadManager.STATUS_FAILED) {
+                        this.callback.invoke("Download manager failed to download from  " + this.url + ". Status Code = " + statusCode, null, null);
+                        return;
                     }
-
-                    // When the file is not found in media content database, check if custom path exists
-                    if (options.addAndroidDownloads.hasKey("path")) {
-                        try {
-                            String customDest = options.addAndroidDownloads.getString("path");
-                            boolean exists = new File(customDest).exists();
-                            if (!exists)
-                                throw new Exception("Download manager download failed, the file does not downloaded to destination.");
-                            else
-                                this.callback.invoke(null, RNFetchBlobConst.RNFB_RESPONSE_PATH, customDest);
-
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                            this.callback.invoke(ex.getLocalizedMessage(), null);
+                    String contentUri = c.getString(c.getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
+                    if (contentUri != null &&
+                            options.addAndroidDownloads.hasKey("mime") &&
+                            options.addAndroidDownloads.getString("mime").contains("image")) {
+                        Uri uri = Uri.parse(contentUri);
+                        Cursor cursor = appCtx.getContentResolver().query(uri, new String[]{android.provider.MediaStore.Images.ImageColumns.DATA}, null, null, null);
+                        // use default destination of DownloadManager
+                        if (cursor != null) {
+                            cursor.moveToFirst();
+                            filePath = cursor.getString(0);
+                            cursor.close();
                         }
-                    } else {
-                        if (filePath == null)
-                            this.callback.invoke("Download manager could not resolve downloaded file path.", RNFetchBlobConst.RNFB_RESPONSE_PATH, null);
-                        else
-                            this.callback.invoke(null, RNFetchBlobConst.RNFB_RESPONSE_PATH, filePath);
-                    }
-                } finally {
-                    if (c != null) {
-                        c.close();
                     }
                 }
+
+                // When the file is not found in media content database, check if custom path exists
+                if (options.addAndroidDownloads.hasKey("path")) {
+                    try {
+                        String customDest = options.addAndroidDownloads.getString("path");
+                        boolean exists = new File(customDest).exists();
+                        if (!exists)
+                            throw new Exception("Download manager download failed, the file does not downloaded to destination.");
+                        else
+                            this.callback.invoke(null, RNFetchBlobConst.RNFB_RESPONSE_PATH, customDest);
+
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        this.callback.invoke(ex.getLocalizedMessage(), null);
+                    }
+                } else {
+                    if (filePath == null)
+                        this.callback.invoke("Download manager could not resolve downloaded file path.", RNFetchBlobConst.RNFB_RESPONSE_PATH, null);
+                    else
+                        this.callback.invoke(null, RNFetchBlobConst.RNFB_RESPONSE_PATH, filePath);
+                }
+
 
             }
         }
