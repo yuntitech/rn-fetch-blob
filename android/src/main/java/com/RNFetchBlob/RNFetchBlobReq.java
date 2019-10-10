@@ -169,8 +169,10 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                 if(options.addAndroidDownloads.hasKey("description")) {
                     req.setDescription(options.addAndroidDownloads.getString("description"));
                 }
+                String path = "";
                 if(options.addAndroidDownloads.hasKey("path")) {
-                    req.setDestinationUri(Uri.parse("file://" + options.addAndroidDownloads.getString("path")));
+                    path = options.addAndroidDownloads.getString("path");
+                    req.setDestinationUri(Uri.parse("file://" + path));
                 }
                 // #391 Add MIME type to the request
                 if(options.addAndroidDownloads.hasKey("mime")) {
@@ -188,8 +190,18 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
                 Context appCtx = RNFetchBlob.RCTContext.getApplicationContext();
                 DownloadManager dm = (DownloadManager) appCtx.getSystemService(Context.DOWNLOAD_SERVICE);
                 downloadManagerId = dm.enqueue(req);
-                androidDownloadManagerTaskTable.put(taskId, Long.valueOf(downloadManagerId));
-                appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+//                androidDownloadManagerTaskTable.put(taskId, Long.valueOf(downloadManagerId));
+//                appCtx.registerReceiver(this, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                int callbackInterval = 200;
+                if(options.addAndroidDownloads.hasKey("callbackInterval")) {
+                    callbackInterval = options.addAndroidDownloads.getInt("callbackInterval");
+                }
+                try {
+                    Thread.sleep(callbackInterval);
+                    this.callback.invoke(null, RNFetchBlobConst.RNFB_RESPONSE_PATH, path);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 return;
             }
 
@@ -665,7 +677,6 @@ public class RNFetchBlobReq extends BroadcastReceiver implements Runnable {
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)) {
             Context appCtx = RNFetchBlob.RCTContext.getApplicationContext();
             long id = intent.getExtras().getLong(DownloadManager.EXTRA_DOWNLOAD_ID);
-            appCtx.unregisterReceiver(this);
             if (id == this.downloadManagerId) {
                 releaseTaskResource(); // remove task ID from task map
 
