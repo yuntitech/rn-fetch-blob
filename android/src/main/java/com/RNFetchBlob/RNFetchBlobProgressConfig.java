@@ -28,7 +28,7 @@ public class RNFetchBlobProgressConfig {
         boolean checkCount = true;
         if(count > 0 && progress > 0)
             checkCount = Math.floor(progress*count)> tick;
-        boolean result = (System.currentTimeMillis() - lastTick> interval) && enable && checkCount;
+        boolean result = ((System.currentTimeMillis() - lastTick > interval) || progress == 1) && enable && checkCount;
         if(result) {
             tick++;
             lastTick = System.currentTimeMillis();
