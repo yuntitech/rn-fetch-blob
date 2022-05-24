@@ -64,6 +64,11 @@ public class RNFetchBlobUtils {
 
                         @Override
                         public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
+                            try {
+                                chain[0].checkValidity();
+                            } catch (Exception e) {
+                                throw new CertificateException("Certificate not valid or trusted.");
+                            }
                         }
 
                         @Override
