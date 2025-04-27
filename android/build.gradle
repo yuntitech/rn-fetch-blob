@@ -1,24 +1,30 @@
 apply plugin: 'com.android.library'
 
-repositories {
-    mavenCentral()
-}
-
 buildscript {
     repositories {
-        jcenter()
+        google()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:7.3.1'
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        // React Native repository
+        url "$rootDir/../node_modules/react-native/android"
     }
 }
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 33
+    // buildToolsVersion is managed by the Android Gradle Plugin
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 23
+        minSdkVersion 21
+        targetSdkVersion 33
         versionCode 1
         versionName "1.0"
     }
@@ -33,10 +39,10 @@ android {
 }
 
 dependencies {
-    compile 'com.facebook.react:react-native:+'
-    //compile 'com.squareup.okhttp3:okhttp:+'
+    implementation 'com.facebook.react:react-native:+'
+    //implementation 'com.squareup.okhttp3:okhttp:+'
     //{RNFetchBlob_PRE_0.28_DEPDENDENCY}
-    compile 'androidx.core:core:1.0.2'
-    compile 'androidx.annotation:annotation:1.1.0'
-    implementation 'commons-io:commons-io:2.4'
+    implementation 'androidx.core:core:1.9.0'
+    implementation 'androidx.annotation:annotation:1.6.0'
+    implementation 'commons-io:commons-io:2.11.0'
 }
